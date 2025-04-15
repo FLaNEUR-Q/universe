@@ -5,7 +5,7 @@ import * as THREE from 'three'
 
 function Earth() {
   const ref = useRef()
-  const texture = new THREE.TextureLoader().load("/earth_daymap.jpg")
+  const texture = new THREE.TextureLoader().load("/2k_earth_daymap.jpg")
 
   useFrame(() => {
     if (ref.current) ref.current.rotation.y += 0.0015
