@@ -5,26 +5,17 @@ import * as THREE from 'three'
 
 function Earth() {
   const planetRef = useRef()
-  const atmosphereRef = useRef()
-
   const texture = new THREE.TextureLoader().load("https://cdn.jsdelivr.net/gh/rajatdiptabiswas/planet-textures@main/2k_earth_daymap.jpg")
 
   useFrame(() => {
     if (planetRef.current) planetRef.current.rotation.y += 0.0015
-    if (atmosphereRef.current) atmosphereRef.current.rotation.y += 0.0015
   })
 
   return (
-    <>
-      <mesh ref={planetRef}>
-        <sphereGeometry args={[2, 64, 64]} />
-        <meshStandardMaterial map={texture} />
-      </mesh>
-      <mesh ref={atmosphereRef}>
-        <sphereGeometry args={[2.15, 64, 64]} />
-        <meshBasicMaterial color="#aadfff" transparent opacity={0.1} side={THREE.BackSide} />
-      </mesh>
-    </>
+    <mesh ref={planetRef}>
+      <sphereGeometry args={[2, 64, 64]} />
+      <meshStandardMaterial map={texture} />
+    </mesh>
   )
 }
 
