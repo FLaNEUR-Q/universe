@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Stars, OrbitControls, Text } from '@react-three/drei'
 import * as THREE from 'three'
@@ -14,10 +14,12 @@ const fetchGPTData = async (keyword: string): Promise<{ color: string, summary: 
       model: 'gpt-3.5-turbo',
       messages: [{
         role: 'user',
-        content: `Imagine a planet that represents "${keyword}".
-1. What color is this planet? (Give a hex code like #00FF00)
-2. Describe it in 1 sentence.
-3. Give 3 related keywords. Reply as JSON with keys: color, summary, keywords`
+        content: `Imagine a planet that represents the word "${keyword}". Reply ONLY with JSON in the following format:
+{
+  "color": "#00FF00",
+  "summary": "A short poetic summary of the world.",
+  "keywords": ["one", "two", "three"]
+}`
       }],
       temperature: 0.7
     })
@@ -27,6 +29,7 @@ const fetchGPTData = async (keyword: string): Promise<{ color: string, summary: 
   try {
     return JSON.parse(content)
   } catch (err) {
+    console.warn('Failed to parse GPT response:', content)
     return { color: '#888888', summary: 'Unknown world', keywords: [] }
   }
 }
@@ -34,11 +37,9 @@ const fetchGPTData = async (keyword: string): Promise<{ color: string, summary: 
 function Planet({ color }: { color: string }) {
   const meshRef = useRef<THREE.Mesh>(null!)
   const texture = new THREE.TextureLoader().load("https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg")
-
   useFrame(() => {
     meshRef.current.rotation.y += 0.002
   })
-
   return (
     <mesh ref={meshRef}>
       <sphereGeometry args={[2, 64, 64]} />
