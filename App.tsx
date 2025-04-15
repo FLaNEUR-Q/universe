@@ -29,8 +29,8 @@ const fetchGPTData = async (keyword: string): Promise<{ color: string, summary: 
   try {
     return JSON.parse(content)
   } catch (err) {
-    console.warn('Failed to parse GPT response:', content)
-    return { color: '#888888', summary: 'Unknown world', keywords: [] }
+    console.warn('GPT parse failed:', content)
+    return { color: '#8888ff', summary: 'A peaceful blue Earth.', keywords: ['life', 'water', 'sky'] }
   }
 }
 
@@ -50,19 +50,21 @@ function Planet({ color }: { color: string }) {
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState('')
-  const [color, setColor] = useState('#888888')
-  const [summary, setSummary] = useState('')
-  const [keywords, setKeywords] = useState<string[]>([])
+  const [planetColor, setPlanetColor] = useState('#3c80ff')
+  const [summary, setSummary] = useState('A peaceful blue Earth.')
+  const [keywords, setKeywords] = useState<string[]>(['life', 'water', 'sky'])
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!searchTerm.trim()) return
+  const handleSubmit = async (e: React.FormEvent | string) => {
+    if (typeof e !== 'string') e.preventDefault()
+    const term = typeof e === 'string' ? e : searchTerm.trim()
+    if (!term) return
     setLoading(true)
-    const result = await fetchGPTData(searchTerm.trim())
-    setColor(result.color)
+    const result = await fetchGPTData(term)
+    setPlanetColor(result.color)
     setSummary(result.summary)
     setKeywords(result.keywords)
+    setSearchTerm('')
     setLoading(false)
   }
 
@@ -72,12 +74,19 @@ export default function App() {
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} />
         <Stars radius={100} depth={50} count={5000} factor={4} fade speed={1} />
-        <Planet color={color} />
+        <Planet color={planetColor} />
         <Text position={[0, -3.2, 0]} fontSize={0.35} color="white">
           {summary}
         </Text>
         {keywords.map((k, i) => (
-          <Text key={i} position={[Math.cos(i * 2) * 4, 1.5 - i, Math.sin(i * 2) * 4]} fontSize={0.25} color="skyblue">
+          <Text
+            key={i}
+            position={[Math.cos(i * 2) * 4, 1.5 - i, Math.sin(i * 2) * 4]}
+            fontSize={0.25}
+            color="skyblue"
+            onClick={() => handleSubmit(k)}
+            style={{ cursor: 'pointer' }}
+          >
             {k}
           </Text>
         ))}
