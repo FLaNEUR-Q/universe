@@ -29,7 +29,7 @@ const fetchGPTData = async (keyword) => {
     return JSON.parse(data.choices?.[0]?.message?.content)
   } catch {
     return {
-      color: '#3c80ff',
+      color: '#ffffff',
       summary: 'A peaceful blue Earth.',
       keywords: ['life', 'water', 'sky']
     }
@@ -40,8 +40,10 @@ function Planet() {
   const planetRef = useRef()
   const cloudRef = useRef()
 
-  const texture = new THREE.TextureLoader().load("https://raw.githubusercontent.com/rajatdiptabiswas/planet-textures/main/2k_earth_daymap.jpg")
-  const cloudTexture = new THREE.TextureLoader().load("https://threejs.org/examples/textures/planets/earth_clouds_1024.png")
+  const dayMap = new THREE.TextureLoader().load("https://raw.githubusercontent.com/rajatdiptabiswas/planet-textures/main/2k_earth_daymap.jpg")
+  const nightMap = new THREE.TextureLoader().load("https://raw.githubusercontent.com/rajatdiptabiswas/planet-textures/main/2k_earth_nightmap.jpg")
+  const bumpMap = new THREE.TextureLoader().load("https://raw.githubusercontent.com/rajatdiptabiswas/planet-textures/main/2k_earth_bump.jpg")
+  const cloudMap = new THREE.TextureLoader().load("https://threejs.org/examples/textures/planets/earth_clouds_1024.png")
 
   useFrame(() => {
     if (planetRef.current) planetRef.current.rotation.y += 0.0015
@@ -53,16 +55,19 @@ function Planet() {
       <mesh ref={planetRef}>
         <sphereGeometry args={[2, 64, 64]} />
         <meshStandardMaterial
-          map={texture}
-          color="white"
-          metalness={0.3}
-          roughness={0.8}
+          map={dayMap}
+          emissiveMap={nightMap}
+          emissiveIntensity={1.2}
+          bumpMap={bumpMap}
+          bumpScale={0.03}
+          metalness={0.2}
+          roughness={0.9}
         />
       </mesh>
       <mesh ref={cloudRef}>
         <sphereGeometry args={[2.02, 64, 64]} />
         <meshStandardMaterial
-          map={cloudTexture}
+          map={cloudMap}
           transparent
           opacity={0.35}
           depthWrite={false}
