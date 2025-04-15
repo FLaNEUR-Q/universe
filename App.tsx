@@ -36,7 +36,7 @@ const fetchGPTData = async (keyword) => {
   }
 }
 
-function Planet({ color }) {
+function Planet() {
   const planetRef = useRef()
   const cloudRef = useRef()
 
@@ -54,9 +54,7 @@ function Planet({ color }) {
         <sphereGeometry args={[2, 64, 64]} />
         <meshStandardMaterial
           map={texture}
-          color={color}
-          emissive={color}
-          emissiveIntensity={0.15}
+          color="white"
           metalness={0.3}
           roughness={0.8}
         />
@@ -76,7 +74,6 @@ function Planet({ color }) {
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState('')
-  const [planetColor, setPlanetColor] = useState('#3c80ff')
   const [summary, setSummary] = useState('A peaceful blue Earth.')
   const [keywords, setKeywords] = useState(['life', 'water', 'sky'])
   const [loading, setLoading] = useState(false)
@@ -86,7 +83,6 @@ export default function App() {
     if (!searchTerm.trim()) return
     setLoading(true)
     const result = await fetchGPTData(searchTerm.trim())
-    setPlanetColor(result.color)
     setSummary(result.summary)
     setKeywords(result.keywords)
     setSearchTerm('')
@@ -96,7 +92,6 @@ export default function App() {
   const handleKeywordClick = async (keyword) => {
     setLoading(true)
     const result = await fetchGPTData(keyword)
-    setPlanetColor(result.color)
     setSummary(result.summary)
     setKeywords(result.keywords)
     setLoading(false)
@@ -108,7 +103,7 @@ export default function App() {
         <ambientLight intensity={0.7} />
         <directionalLight position={[0, 0, 5]} intensity={3} />
         <Stars radius={100} depth={50} count={5000} factor={4} fade speed={1} />
-        <Planet color={planetColor} />
+        <Planet />
         <Text position={[0, -3.2, 0]} fontSize={0.35} color="white">
           {summary}
         </Text>
