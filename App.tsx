@@ -1,9 +1,9 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { Stars, OrbitControls } from '@react-three/drei'
+import { Stars, OrbitControls, Text } from '@react-three/drei'
 import * as THREE from 'three'
 
-const fetchGPTColor = async (keyword: string): Promise<string> => {
+const fetchGPTData = async (keyword: string): Promise<{ color: string, summary: string, keywords: string[] }> => {
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -14,66 +14,73 @@ const fetchGPTColor = async (keyword: string): Promise<string> => {
       model: 'gpt-3.5-turbo',
       messages: [{
         role: 'user',
-        content: `Imagine a planet representing "${keyword}". What color best represents it? Reply with a single CSS color code like "#00FF00".`
+        content: `Imagine a planet that represents "${keyword}".
+1. What color is this planet? (Give a hex code like #00FF00)
+2. Describe it in 1 sentence.
+3. Give 3 related keywords. Reply as JSON with keys: color, summary, keywords`
       }],
       temperature: 0.7
     })
   })
   const data = await res.json()
-  const text = data.choices?.[0]?.message?.content?.trim()
-  return /^#[0-9A-Fa-f]{6}$/.test(text) ? text : '#888888'
+  const content = data.choices?.[0]?.message?.content
+  try {
+    return JSON.parse(content)
+  } catch (err) {
+    return { color: '#888888', summary: 'Unknown world', keywords: [] }
+  }
 }
 
 function Planet({ color }: { color: string }) {
   const meshRef = useRef<THREE.Mesh>(null!)
-  const bump = new THREE.TextureLoader().load("https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/moonbump1k.jpg")
+  const texture = new THREE.TextureLoader().load("https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg")
 
   useFrame(() => {
-    if (meshRef.current) meshRef.current.rotation.y += 0.002
+    meshRef.current.rotation.y += 0.002
   })
 
   return (
     <mesh ref={meshRef}>
       <sphereGeometry args={[2, 64, 64]} />
-      <meshStandardMaterial
-        color={color}
-        bumpMap={bump}
-        bumpScale={0.1}
-        metalness={0.4}
-        roughness={0.7}
-      />
+      <meshStandardMaterial map={texture} color={color} />
     </mesh>
   )
 }
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState('')
-  const [planetColor, setPlanetColor] = useState('#888888')
+  const [color, setColor] = useState('#888888')
+  const [summary, setSummary] = useState('')
+  const [keywords, setKeywords] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const trimmed = searchTerm.trim()
-    if (!trimmed) return
+    if (!searchTerm.trim()) return
     setLoading(true)
-    try {
-      const color = await fetchGPTColor(trimmed)
-      setPlanetColor(color)
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setLoading(false)
-    }
+    const result = await fetchGPTData(searchTerm.trim())
+    setColor(result.color)
+    setSummary(result.summary)
+    setKeywords(result.keywords)
+    setLoading(false)
   }
 
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
       <Canvas camera={{ position: [0, 0, 7] }}>
-        <ambientLight />
+        <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} />
-        <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
-        <Planet color={planetColor} />
-        <OrbitControls enablePan={false} enableZoom={false} />
+        <Stars radius={100} depth={50} count={5000} factor={4} fade speed={1} />
+        <Planet color={color} />
+        <Text position={[0, -3.2, 0]} fontSize={0.35} color="white">
+          {summary}
+        </Text>
+        {keywords.map((k, i) => (
+          <Text key={i} position={[Math.cos(i * 2) * 4, 1.5 - i, Math.sin(i * 2) * 4]} fontSize={0.25} color="skyblue">
+            {k}
+          </Text>
+        ))}
+        <OrbitControls />
       </Canvas>
 
       <form
@@ -90,8 +97,7 @@ export default function App() {
           type="text"
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
-          placeholder={loading ? 'Loading GPT...' : 'Search a planet'
-          }
+          placeholder={loading ? 'GPT is imagining...' : 'Type a world (e.g. volcano, dream)'}
           disabled={loading}
           style={{
             padding: '1rem 1.5rem',
