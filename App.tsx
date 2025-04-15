@@ -40,9 +40,9 @@ function Planet() {
   const planetRef = useRef()
   const cloudRef = useRef()
 
-  const dayMap = new THREE.TextureLoader().load("https://raw.githubusercontent.com/rajatdiptabiswas/planet-textures/main/2k_earth_daymap.jpg")
-  const nightMap = new THREE.TextureLoader().load("https://raw.githubusercontent.com/rajatdiptabiswas/planet-textures/main/2k_earth_nightmap.jpg")
-  const bumpMap = new THREE.TextureLoader().load("https://raw.githubusercontent.com/rajatdiptabiswas/planet-textures/main/2k_earth_bump.jpg")
+  const dayMap = new THREE.TextureLoader().load("https://cdn.jsdelivr.net/gh/rajatdiptabiswas/planet-textures@main/2k_earth_daymap.jpg")
+  const nightMap = new THREE.TextureLoader().load("https://cdn.jsdelivr.net/gh/rajatdiptabiswas/planet-textures@main/2k_earth_nightmap.jpg")
+  const bumpMap = new THREE.TextureLoader().load("https://cdn.jsdelivr.net/gh/rajatdiptabiswas/planet-textures@main/2k_earth_bump.jpg")
   const cloudMap = new THREE.TextureLoader().load("https://threejs.org/examples/textures/planets/earth_clouds_1024.png")
 
   useFrame(() => {
