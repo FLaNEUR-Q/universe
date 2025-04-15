@@ -1,36 +1,19 @@
-import React, { useRef, useEffect, useState } from 'react'
+import React, { useRef } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls, Stars } from '@react-three/drei'
 import * as THREE from 'three'
 
 function Earth() {
   const ref = useRef()
-  const [texture, setTexture] = useState(null)
-
-  useEffect(() => {
-    const loader = new THREE.TextureLoader()
-    loader.load(
-      'https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg',
-      (tex) => {
-        console.log("🟢 텍스처 로드 성공!", tex)
-        setTexture(tex)
-      },
-      undefined,
-      (err) => {
-        console.error("🔴 텍스처 로드 실패!", err)
-      }
-    )
-  }, [])
+  const texture = new THREE.TextureLoader().load("/earth_daymap.jpg")
 
   useFrame(() => {
     if (ref.current) ref.current.rotation.y += 0.0015
   })
 
-  if (!texture) return null
-
   return (
     <mesh ref={ref}>
-      <sphereGeometry args={[2, 64, 64]} />
+      <sphereGeometry args={[2, 128, 128]} />
       <meshStandardMaterial map={texture} />
     </mesh>
   )
