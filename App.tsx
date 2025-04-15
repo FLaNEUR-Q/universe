@@ -37,24 +37,51 @@ const fetchGPTData = async (keyword) => {
 }
 
 function Planet({ color }) {
-  const planetRef = useRef()
-  const texture = new THREE.TextureLoader().load("https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg")
+  const earthRef = useRef()
+  const cloudsRef = useRef()
   const atmosphereRef = useRef()
 
+  const earthTexture = new THREE.TextureLoader().load("https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg")
+  const cloudTexture = new THREE.TextureLoader().load("https://threejs.org/examples/textures/planets/earth_clouds_1024.png")
+
   useFrame(() => {
-    if (planetRef.current) planetRef.current.rotation.y += 0.002
-    if (atmosphereRef.current) atmosphereRef.current.rotation.y += 0.002
+    if (earthRef.current) earthRef.current.rotation.y += 0.0015
+    if (cloudsRef.current) cloudsRef.current.rotation.y += 0.002
+    if (atmosphereRef.current) atmosphereRef.current.rotation.y += 0.0015
   })
 
   return (
     <>
-      <mesh ref={planetRef}>
+      <mesh ref={earthRef}>
         <sphereGeometry args={[2, 64, 64]} />
-        <meshStandardMaterial map={texture} color={color} />
+        <meshStandardMaterial
+          map={earthTexture}
+          color={color}
+          metalness={0.3}
+          roughness={0.9}
+          emissive={color}
+          emissiveIntensity={0.25}
+        />
       </mesh>
+
+      <mesh ref={cloudsRef}>
+        <sphereGeometry args={[2.02, 64, 64]} />
+        <meshStandardMaterial
+          map={cloudTexture}
+          transparent
+          opacity={0.3}
+          depthWrite={false}
+        />
+      </mesh>
+
       <mesh ref={atmosphereRef}>
-        <sphereGeometry args={[2.05, 64, 64]} />
-        <meshBasicMaterial color="#44ccff" transparent opacity={0.2} side={THREE.BackSide} />
+        <sphereGeometry args={[2.07, 64, 64]} />
+        <meshBasicMaterial
+          color="#88ccff"
+          transparent
+          opacity={0.5}
+          side={THREE.BackSide}
+        />
       </mesh>
     </>
   )
@@ -91,8 +118,8 @@ export default function App() {
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
       <Canvas camera={{ position: [0, 0, 7] }}>
-        <directionalLight position={[5, 5, 5]} intensity={1.5} />
-        <ambientLight intensity={0.3} />
+        <directionalLight position={[0, 0, 5]} intensity={2} color="#ffffff" />
+        <ambientLight intensity={0.7} />
         <Stars radius={100} depth={50} count={5000} factor={4} fade speed={1} />
         <Planet color={planetColor} />
         <Text position={[0, -3.2, 0]} fontSize={0.35} color="white">
