@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { Stars, OrbitControls, Text } from '@react-three/drei'
 import * as THREE from 'three'
 
@@ -39,8 +39,9 @@ const fetchGPTData = async (keyword) => {
 function Planet({ color }) {
   const planetRef = useRef()
   const cloudRef = useRef()
-  const texture = new THREE.TextureLoader().load("https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg")
-  const clouds = new THREE.TextureLoader().load("https://threejs.org/examples/textures/planets/earth_clouds_1024.png")
+
+  const texture = new THREE.TextureLoader().load("https://raw.githubusercontent.com/rajatdiptabiswas/planet-textures/main/2k_earth_daymap.jpg")
+  const cloudTexture = new THREE.TextureLoader().load("https://threejs.org/examples/textures/planets/earth_clouds_1024.png")
 
   useFrame(() => {
     if (planetRef.current) planetRef.current.rotation.y += 0.0015
@@ -55,7 +56,7 @@ function Planet({ color }) {
           map={texture}
           color={color}
           emissive={color}
-          emissiveIntensity={0.25}
+          emissiveIntensity={0.15}
           metalness={0.3}
           roughness={0.8}
         />
@@ -63,24 +64,12 @@ function Planet({ color }) {
       <mesh ref={cloudRef}>
         <sphereGeometry args={[2.02, 64, 64]} />
         <meshStandardMaterial
-          map={clouds}
+          map={cloudTexture}
           transparent
           opacity={0.35}
           depthWrite={false}
         />
       </mesh>
-    </>
-  )
-}
-
-function Sun() {
-  return (
-    <>
-      <mesh position={[10, 10, 10]}>
-        <sphereGeometry args={[1.5, 32, 32]} />
-        <meshBasicMaterial color="yellow" />
-      </mesh>
-      <pointLight position={[10, 10, 10]} intensity={20} color="#ffffff" />
     </>
   )
 }
@@ -116,9 +105,9 @@ export default function App() {
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
       <Canvas camera={{ position: [0, 0, 7] }}>
-        <ambientLight intensity={0.5} />
+        <ambientLight intensity={0.7} />
+        <directionalLight position={[0, 0, 5]} intensity={3} />
         <Stars radius={100} depth={50} count={5000} factor={4} fade speed={1} />
-        <Sun />
         <Planet color={planetColor} />
         <Text position={[0, -3.2, 0]} fontSize={0.35} color="white">
           {summary}
