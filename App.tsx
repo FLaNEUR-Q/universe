@@ -3,7 +3,7 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { Stars, OrbitControls, Text } from '@react-three/drei'
 import * as THREE from 'three'
 
-const fetchGPTData = async (keyword: string): Promise<{ color: string, summary: string, keywords: string[] }> => {
+const fetchGPTData = async (keyword) => {
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -25,26 +25,38 @@ const fetchGPTData = async (keyword: string): Promise<{ color: string, summary: 
     })
   })
   const data = await res.json()
-  const content = data.choices?.[0]?.message?.content
   try {
-    return JSON.parse(content)
-  } catch (err) {
-    console.warn('GPT parse failed:', content)
-    return { color: '#8888ff', summary: 'A peaceful blue Earth.', keywords: ['life', 'water', 'sky'] }
+    return JSON.parse(data.choices?.[0]?.message?.content)
+  } catch {
+    return {
+      color: '#3c80ff',
+      summary: 'A peaceful blue Earth.',
+      keywords: ['life', 'water', 'sky']
+    }
   }
 }
 
-function Planet({ color }: { color: string }) {
-  const meshRef = useRef<THREE.Mesh>(null!)
+function Planet({ color }) {
+  const planetRef = useRef()
   const texture = new THREE.TextureLoader().load("https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg")
+  const atmosphereRef = useRef()
+
   useFrame(() => {
-    meshRef.current.rotation.y += 0.002
+    if (planetRef.current) planetRef.current.rotation.y += 0.002
+    if (atmosphereRef.current) atmosphereRef.current.rotation.y += 0.002
   })
+
   return (
-    <mesh ref={meshRef}>
-      <sphereGeometry args={[2, 64, 64]} />
-      <meshStandardMaterial map={texture} color={color} />
-    </mesh>
+    <>
+      <mesh ref={planetRef}>
+        <sphereGeometry args={[2, 64, 64]} />
+        <meshStandardMaterial map={texture} color={color} />
+      </mesh>
+      <mesh ref={atmosphereRef}>
+        <sphereGeometry args={[2.05, 64, 64]} />
+        <meshBasicMaterial color="#44ccff" transparent opacity={0.2} side={THREE.BackSide} />
+      </mesh>
+    </>
   )
 }
 
@@ -52,15 +64,14 @@ export default function App() {
   const [searchTerm, setSearchTerm] = useState('')
   const [planetColor, setPlanetColor] = useState('#3c80ff')
   const [summary, setSummary] = useState('A peaceful blue Earth.')
-  const [keywords, setKeywords] = useState<string[]>(['life', 'water', 'sky'])
+  const [keywords, setKeywords] = useState(['life', 'water', 'sky'])
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent | string) => {
-    if (typeof e !== 'string') e.preventDefault()
-    const term = typeof e === 'string' ? e : searchTerm.trim()
-    if (!term) return
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!searchTerm.trim()) return
     setLoading(true)
-    const result = await fetchGPTData(term)
+    const result = await fetchGPTData(searchTerm.trim())
     setPlanetColor(result.color)
     setSummary(result.summary)
     setKeywords(result.keywords)
@@ -68,11 +79,20 @@ export default function App() {
     setLoading(false)
   }
 
+  const handleKeywordClick = async (keyword) => {
+    setLoading(true)
+    const result = await fetchGPTData(keyword)
+    setPlanetColor(result.color)
+    setSummary(result.summary)
+    setKeywords(result.keywords)
+    setLoading(false)
+  }
+
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
       <Canvas camera={{ position: [0, 0, 7] }}>
-        <ambientLight intensity={0.5} />
-        <pointLight position={[10, 10, 10]} />
+        <directionalLight position={[5, 5, 5]} intensity={1.5} />
+        <ambientLight intensity={0.3} />
         <Stars radius={100} depth={50} count={5000} factor={4} fade speed={1} />
         <Planet color={planetColor} />
         <Text position={[0, -3.2, 0]} fontSize={0.35} color="white">
@@ -84,8 +104,7 @@ export default function App() {
             position={[Math.cos(i * 2) * 4, 1.5 - i, Math.sin(i * 2) * 4]}
             fontSize={0.25}
             color="skyblue"
-            onClick={() => handleSubmit(k)}
-            style={{ cursor: 'pointer' }}
+            onClick={() => handleKeywordClick(k)}
           >
             {k}
           </Text>
@@ -106,7 +125,7 @@ export default function App() {
         <input
           type="text"
           value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
+          onChange={(e) => setSearchTerm(e.target.value)}
           placeholder={loading ? 'GPT is imagining...' : 'Type a world (e.g. volcano, dream)'}
           disabled={loading}
           style={{
